@@ -1,8 +1,8 @@
 using System.Text;
 using Auth.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.IdentityModel.Tokens;
+using Auth.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +12,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Data/DataExtension, AddRepositories ==> to inject repositories as dependencies in the app
+builder.Services.AddRepositories(builder.Configuration);
+
+
 
 
 // Add Jwt configuration to the builder DI
@@ -41,6 +46,8 @@ var key = Encoding.ASCII.GetBytes(secret ?? throw new InvalidOperationException(
 });
 
 var app = builder.Build();
+// data/ DataExtension ==> used for automatic db migration whenever the application starts up
+await app.Services.InitializeDbAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

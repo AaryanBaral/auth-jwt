@@ -4,3 +4,16 @@ GET {{Auth_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+GET {{Auth_HostAddress}}/blog/
+
+###
+POST  {{Auth_HostAddress}}/blog/
+Content-Type: application/json
+
+{
+    "Title":"My Title",
+    "Description":"My Description"
+
+}
+
+
