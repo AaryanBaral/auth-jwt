@@ -15,5 +15,14 @@ Content-Type: application/json
     "Description":"My Description"
 
 }
+###
+POST  {{Auth_HostAddress}}/api/authentication/register
+Content-Type: application/json
+
+{
+    "name":"MyTit",
+    "email":"aaryanbar@gmail.com",
+    "password":"0Dsfaksdnfasdf!"
+}
 
 

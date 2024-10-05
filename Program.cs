@@ -3,6 +3,7 @@ using Auth.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Auth.Data;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,13 @@ builder.Services.AddRepositories(builder.Configuration);
 
 
 
-// Add Jwt configuration to the builder DI
+/* 
+    Add Jwt configuration to the builder DI
+    It basically automatically maps the "JwtConfig" section in the appsettings.json file 
+    to the JwtConfig class 
+    you cant directly access the secret from jwt class instance 
+    you have to use IOption<JwtConfig> instance.Value to access the actual values inside of that class
+*/ 
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
 
 // Add the Aunthentication scheme and configurations
@@ -44,6 +51,11 @@ var key = Encoding.ASCII.GetBytes(secret ?? throw new InvalidOperationException(
         ValidateLifetime=true // it sets that the token is valid for life time
     };
 });
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options=>{
+    options.SignIn.RequireConfirmedEmail = false;
+})
+.AddEntityFrameworkStores<BlogDbContext>();
 
 var app = builder.Build();
 // data/ DataExtension ==> used for automatic db migration whenever the application starts up
