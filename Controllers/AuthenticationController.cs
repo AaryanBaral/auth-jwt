@@ -4,8 +4,10 @@ using System.Security.Claims;
 using System.Text;
 
 using Auth.Configuration;
+using Auth.Helpers;
 using Auth.Models;
 using Auth.Models.DTOs;
+using Auth.Service;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -15,24 +17,19 @@ namespace Auth.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthenticationController(ILogger<AuthenticationController> logger, UserManager<IdentityUser> userManager, IOptions<JwtConfig> config) : ControllerBase
+    public class AuthenticationController(ILogger<AuthenticationController> logger, UserManager<IdentityUser> userManager, ITokenService tokenService) : ControllerBase
     {
         private readonly ILogger<AuthenticationController> _logger = logger;
         private readonly UserManager<IdentityUser> _userManager = userManager;
+        private readonly ITokenService _tokenService = tokenService;
+
 
         /*
             instead of using JwtConfig class instance directly 
             you must use IOption<JwtConfig> config.Value to get access of the 
             jwt class members you cannot use it directly thorugh its class
         */
-        private readonly JwtConfig _jwtConfig = config.Value;
 
-
-        private static List<string> GetErrors(IdentityResult result)
-        {
-            // Convert each IdentityError into a descriptive string
-            return result.Errors.Select(error => $"Code: {error.Code}, Description: {error.Description}").ToList();
-        }
 
         [HttpPost]
         [Route("register")]
@@ -63,13 +60,13 @@ namespace Auth.Controllers
                 {
                     Token = null,
                     Result = false,
-                    Errors = GetErrors(isCreated)
+                    Errors = IdentityErrorHandler.GetErrors(isCreated)
                 });
             }
 
             // Generate Token
 
-            var Token = GenerateToken(newUser);
+            var Token = _tokenService.GenerateJwtToken(newUser);
             return Ok(new AuthResults()
             {
                 Token = Token,
@@ -79,38 +76,5 @@ namespace Auth.Controllers
 
 
 
-        private string GenerateToken(IdentityUser user)
-        {
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_jwtConfig.Secret);
-
-            /* Claims
-                this is used to add key value pair of data that should be encrypetd 
-                and addded to the jwt token
-            */
-            var _claims = new ClaimsIdentity([
-                new Claim("Id",user.Id),
-                new Claim(JwtRegisteredClaimNames.Sub,user.Email),
-                new Claim(JwtRegisteredClaimNames.Email,user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat,DateTime.Now.ToUniversalTime().ToString()),
-
-            ]);
-
-            /*
-                A token descriptor describes the properites and values to be in the token
-            */
-            var tokenDescriptor = new SecurityTokenDescriptor()
-            {
-                Subject = _claims,
-                Expires = DateTime.Now.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-
-            };
-
-            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
-            var jwtToken = jwtTokenHandler.WriteToken(token);
-            return jwtToken;
-        }
     }
 }
