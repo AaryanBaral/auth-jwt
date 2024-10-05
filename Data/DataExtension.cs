@@ -9,6 +9,9 @@ namespace Auth.Data
 {
     public static class DataExtension
     {
+
+
+        // To automatically migrate and update the database everytime the server starts
         public async static Task InitializeDbAsync(this IServiceProvider serviceProvider)
         {
             using var scope = serviceProvider.CreateScope();
