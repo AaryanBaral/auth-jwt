@@ -2,7 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Auth.Configuration;
+using Auth.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -40,12 +42,25 @@ namespace Auth.Service
             var tokenDescriptor = new SecurityTokenDescriptor()
             {
                 Subject = _claims,
-                Expires = DateTime.Now.AddHours(1),
+                Expires = DateTime.UtcNow.Add(_config.ExpiryTimeFrame),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
 
             };
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);
             var jwtToken = jwtTokenHandler.WriteToken(token);
+
+            var refreshToken = new RefreshToken(){
+                JwtId = token.Issuer,
+                Token = jwtToken,
+                ExpiryDate = DateTime.UtcNow.AddMonths(6),
+                UserId = user.Id,
+                IsRevoked = false,
+                IsUsed = false,
+                AddedDate = DateTime.UtcNow,
+
+            };
+
+
             return jwtToken;
         }
     }

@@ -43,6 +43,7 @@ namespace Auth.Data
             {
                 throw new InvalidOperationException("JWT secret is missing in configuration");
             }
+            var key = Encoding.ASCII.GetBytes(secret);
 
 
             // Add the Aunthentication scheme and configurations
