@@ -1,20 +1,17 @@
 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-
-using Auth.Configuration;
 using Auth.Helpers;
 using Auth.Models;
 using Auth.Models.DTOs;
 using Auth.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
+
 
 namespace Auth.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
     public class AuthenticationController(ILogger<AuthenticationController> logger, UserManager<IdentityUser> userManager, ITokenService tokenService) : ControllerBase
@@ -74,7 +71,35 @@ namespace Auth.Controllers
             });
         }
 
-
+        [HttpPost]
+        [Route("login")]
+        public async Task<IActionResult> LoginUser([FromBody] UserLoginDto userLogin){
+            if(!ModelState.IsValid){
+                return BadRequest(new AuthResults(){
+                    Result = false,
+                    Errors = ["Invalid payload"]
+                });
+            }
+            var existing_user = await _userManager.FindByEmailAsync(userLogin.Email);
+            if(existing_user is null){
+                return BadRequest(new AuthResults(){
+                    Result = false,
+                    Errors = ["Invalid Credentials"]
+                });
+            }
+            var isCorrect = await _userManager.CheckPasswordAsync(existing_user, userLogin.Password);
+            if(!isCorrect){
+                return BadRequest(new AuthResults(){
+                    Result = false,
+                    Errors = ["Invalid Credentials"]
+                });
+            }
+            var jwtToken = _tokenService.GenerateJwtToken(existing_user); 
+            return Ok(new AuthResults(){
+                Result = true,
+                Token = jwtToken
+            });
+        }
 
     }
 }

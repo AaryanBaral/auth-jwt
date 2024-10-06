@@ -24,5 +24,13 @@ Content-Type: application/json
     "email":"aryanbaral@gmail.com",
     "password":"0Dsfaksdnfasdf!"
 }
+###
+POST  {{Auth_HostAddress}}/api/authentication/login
+Content-Type: application/json
+
+{
+    "email":"aryanbaral@gmail.com",
+    "password":"0Dsfaksdnfasdf!"
+}
 
 
