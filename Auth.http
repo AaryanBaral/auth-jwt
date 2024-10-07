@@ -20,8 +20,8 @@ POST  {{Auth_HostAddress}}/api/authentication/register
 Content-Type: application/json
 
 {
-    "name":"AaryanBaral",
-    "email":"aryanbaral@gmail.com",
+    "name":"ewUwede7",
+    "email":"ewcSere-1@gmail1sw34.com",
     "password":"0Dsfaksdnfasdf!"
 }
 ###

@@ -32,6 +32,7 @@ namespace Auth.Data
             services.Configure<JwtConfig>(configuration.GetSection("JwtConfig"));
             services.AddJwtAuthentication(configuration);
             services.AddIdentityConfiguration();
+            services.AddSingleton<EmailService>();
         }
 
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)

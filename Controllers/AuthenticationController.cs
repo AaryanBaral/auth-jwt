@@ -1,4 +1,6 @@
 
+using System.Security.Cryptography;
+using System.Text;
 using Auth.Helpers;
 using Auth.Models;
 using Auth.Models.DTOs;
@@ -15,13 +17,15 @@ namespace Auth.Controllers
     public class AuthenticationController(
         ILogger<AuthenticationController> logger,
         UserManager<IdentityUser> userManager,
-        ITokenService tokenService
+        ITokenService tokenService,
+        EmailService emailService
 
     ) : ControllerBase
     {
         private readonly ILogger<AuthenticationController> _logger = logger;
         private readonly UserManager<IdentityUser> _userManager = userManager;
         private readonly ITokenService _tokenService = tokenService;
+        private readonly EmailService _emailService = emailService;
 
 
 
@@ -65,10 +69,56 @@ namespace Auth.Controllers
                 });
             }
 
-            // Generate Token
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
+            var callback_url = Request.Scheme + "://" + Request.Host + Url.Action("ConfirmEmail", "Authentication", new { userId = newUser.Id, code = code });
+            var EncodedUrl = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(callback_url);
+            var emailBody = $"Please confirm your email <a href = \" {EncodedUrl}\"> click here </a>";
 
-            var Token = await _tokenService.GenerateJwtToken(newUser);
-            return Ok(Token);
+            var isSuccess = _emailService.SendEmail(emailBody, newUser.Email);
+
+            if (!isSuccess)
+            {
+                return BadRequest(new AuthResults()
+                {
+                    Result = false,
+                    Errors = ["This email is not registered"]
+                });
+            }
+            return Ok("please verify your email by clicking on the link we just sent.");
+
+            // // Generate Token
+            // var Token = await _tokenService.GenerateJwtToken(newUser);
+            // return Ok(Token);
+        }
+
+
+        [HttpGet]
+        [Route("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        {
+            if (userId == null)
+            {
+                return BadRequest(new AuthResults()
+                {
+                    Result = false,
+                    Errors = ["Invalid Email Conformation Url"]
+                });
+            }
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return BadRequest(new AuthResults()
+                {
+                    Result = false,
+                    Errors = ["Invalid Email Parameters"]
+                });
+            }
+            code = Encoding.UTF8.GetString(Convert.FromBase64String(code));
+            var result = await _userManager.ConfirmEmailAsync(user, code);
+            var resultString = result.Succeeded 
+            ? "Thank You for confirimg your email"
+            : "Email not confirmed, Plese try again later";
+            return Ok();
         }
 
         [HttpPost]
@@ -85,6 +135,14 @@ namespace Auth.Controllers
             }
             var existing_user = await _userManager.FindByEmailAsync(userLogin.Email);
             if (existing_user is null)
+            {
+                return BadRequest(new AuthResults()
+                {
+                    Result = false,
+                    Errors = ["Invalid Credentials"]
+                });
+            }
+            if (!existing_user.EmailConfirmed)
             {
                 return BadRequest(new AuthResults()
                 {
