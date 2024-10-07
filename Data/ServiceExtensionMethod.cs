@@ -44,7 +44,16 @@ namespace Auth.Data
                 throw new InvalidOperationException("JWT secret is missing in configuration");
             }
             var key = Encoding.ASCII.GetBytes(secret);
-
+            var tokenValidationParameters = new TokenValidationParameters()
+                { 
+                    //used to validate token using different options
+                    ValidateIssuerSigningKey = true, //to validate the tokens signing key
+                    IssuerSigningKey = new SymmetricSecurityKey(key), // we compare if it matches our key or not
+                    ValidateIssuer = false, // it isused to validate the issuer
+                    ValidateAudience = false, // it isused to validate the issuer
+                    RequireExpirationTime = false, //it sets the token is not expired 
+                    ValidateLifetime = true // it sets that the token is valid for life time
+                };
 
             // Add the Aunthentication scheme and configurations
             services.AddAuthentication(options =>
@@ -59,17 +68,9 @@ namespace Auth.Data
 
                 var key = Encoding.ASCII.GetBytes(secret);
                 jwt.SaveToken = true; // saves the generated token to http context
-                jwt.TokenValidationParameters = new TokenValidationParameters()
-                { 
-                    //used to validate token using different options
-                    ValidateIssuerSigningKey = true, //to validate the tokens signing key
-                    IssuerSigningKey = new SymmetricSecurityKey(key), // we compare if it matches our key or not
-                    ValidateIssuer = false, // it isused to validate the issuer
-                    ValidateAudience = false, // it isused to validate the issuer
-                    RequireExpirationTime = false, //it sets the token is not expired 
-                    ValidateLifetime = true // it sets that the token is valid for life time
-                };
+                jwt.TokenValidationParameters = tokenValidationParameters;
             });
+            services.AddSingleton(tokenValidationParameters);
         }
 
         /// Configures ASP.NET Core Identity.

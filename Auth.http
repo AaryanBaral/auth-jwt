@@ -33,4 +33,13 @@ Content-Type: application/json
     "password":"0Dsfaksdnfasdf!"
 }
 
+###
+POST  {{Auth_HostAddress}}/api/authentication/refreshtoken
+Content-Type: application/json
+
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjJmZDBjYTM5LTc1NTctNGM5MS1hNTk2LTA5YjIxM2JhOTM1MyIsInN1YiI6ImFyeWFuYmFyYWxAZ21haWwuY29tIiwiZW1haWwiOiJhcnlhbmJhcmFsQGdtYWlsLmNvbSIsImp0aSI6ImVlOTBhZjhkLWJmZGUtNDc5NS05MWI0LTk0MTg4NDg2OGNlNSIsImlhdCI6MTcyODI3MjA4NCwibmJmIjoxNzI4MjcyMDg0LCJleHAiOjE3MjgyNzIxNDR9.YTKmqc_aflZgKt5OHqQSepPbH7WV6ioHEf1WGr6cQow",
+  "refreshToken": "04lGOfyKdFZLAOMceqlOMPZ"
+}
+
 
