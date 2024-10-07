@@ -1,10 +1,6 @@
-using System.Text;
-using Auth.Configuration;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+
 using Auth.Data;
-using Microsoft.AspNetCore.Identity;
-using Auth.Service;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
